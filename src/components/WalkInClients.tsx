@@ -201,6 +201,9 @@ const WalkInClients: React.FC = () => {
       return;
     }
 
+    // Replace the scanned barcode in the input with just the vehicle number
+    setExitNumber(vehicle.number);
+
     // Show exit receipt with calculated fee before confirming exit
     showExitReceiptWithFee(vehicle);
   };
