@@ -204,8 +204,17 @@ const WalkInClients: React.FC = () => {
     // Replace the scanned barcode in the input with just the vehicle number
     setExitNumber(vehicle.number);
 
-    // Show exit receipt with calculated fee before confirming exit
+    // Show exit receipt with calculated fee
     showExitReceiptWithFee(vehicle);
+
+    // Auto-exit after 1 second delay to prevent wrong vehicle exits
+    setTimeout(() => {
+      // Double-check the vehicle still exists and hasn't been exited by someone else
+      const currentVehicle = vehicles.find(v => v.id === vehicle.id && !v.exitTime);
+      if (currentVehicle) {
+        confirmExit();
+      }
+    }, 1000);
   };
 
   // Generate barcode when receipt is shown
