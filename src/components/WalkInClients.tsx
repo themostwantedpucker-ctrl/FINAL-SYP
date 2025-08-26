@@ -232,10 +232,9 @@ const WalkInClients: React.FC = () => {
       try {
         JsBarcode(barcodeRef.current, currentReceipt.barcode, {
           format: "CODE39",
-          // 0.5 mm narrow bar width -> 0.5 * (96/25.4) ≈ 1.89 px
-          width: 1.89,
-          // 12 mm bar height -> 12 * (96/25.4) ≈ 45.36 px
-          height: 45.36,
+          // Increased bar width and height for larger barcode
+          width: 2.6,
+          height: 64,
           // Hide encoded text under barcode; we'll show only the vehicle number below
           displayValue: false,
           fontSize: 12,
