@@ -216,14 +216,14 @@ const WalkInClients: React.FC = () => {
     // Show exit receipt with calculated fee
     showExitReceiptWithFee(vehicle);
 
-    // Auto-exit after 1 second delay to prevent wrong vehicle exits
+    // Auto-exit quickly after preparing receipt data
     setTimeout(() => {
       // Double-check the vehicle still exists and hasn't been exited by someone else
       const currentVehicle = vehicles.find(v => v.id === vehicle.id && !v.exitTime);
       if (currentVehicle) {
         confirmExit();
       }
-    }, 1000);
+    }, 50);
   };
 
   // Generate barcode when receipt is shown
@@ -231,7 +231,7 @@ const WalkInClients: React.FC = () => {
     if (showReceipt && currentReceipt && barcodeRef.current) {
       try {
         JsBarcode(barcodeRef.current, currentReceipt.barcode, {
-          format: "CODE128",
+          format: "CODE39",
           // 0.5 mm narrow bar width -> 0.5 * (96/25.4) ≈ 1.89 px
           width: 1.89,
           // 12 mm bar height -> 12 * (96/25.4) ≈ 45.36 px
