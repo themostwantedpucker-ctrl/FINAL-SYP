@@ -37,6 +37,11 @@ const WalkInClients: React.FC = () => {
   // Helper to use barcode exit logic with unified input bar
   const handleBarcodeExitUnified = (value: string) => {
     setExitBarcode(value);
+    // Immediately show the vehicle number in the exit input if we can resolve it
+    const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
+    if (matched) {
+      setExitNumber(matched.number);
+    }
     setTimeout(() => {
       handleBarcodeExit(value);
       setExitBarcode('');
@@ -401,15 +406,30 @@ const WalkInClients: React.FC = () => {
                   // Heuristic: barcode is at least 10 chars and contains at least 6 consecutive digits
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                   if (isBarcode) {
-                    // Do NOT show the scanned barcode in the exit input
-                    setExitNumber('');
-                    setTimeout(() => handleBarcodeExitUnified(value), 100);
+                    // Show the vehicle number immediately on scan
+                    const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
+                    if (matched) {
+                      setExitNumber(matched.number);
+                    }
+                    setTimeout(() => handleBarcodeExitUnified(value), 50);
                   } else {
                     setExitNumber(value);
                   }
                 }}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
+                    const value = (e.target as HTMLInputElement).value;
+                    const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
+                    if (isBarcode) {
+                      // Show vehicle number instantly on Enter and process barcode
+                      const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
+                      if (matched) {
+                        setExitNumber(matched.number);
+                      }
+                      e.preventDefault();
+                      handleBarcodeExitUnified(value);
+                      return;
+                    }
                     handleUnifiedExit(exitNumber);
                   }
                 }}
