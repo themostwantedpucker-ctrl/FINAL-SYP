@@ -50,10 +50,14 @@ const WalkInClients: React.FC = () => {
 
   const barcodeRef = useRef(null);
   const vehicleNumberInputRef = useRef<HTMLInputElement>(null);
+  // Lock the exit input to a vehicle number while a scan is being processed
+  const exitNumberLockRef = useRef<string>('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [vehicleType, setVehicleType] = useState<'car' | 'bike' | 'rickshaw'>('car');
   const [exitNumber, setExitNumber] = useState('');
   const [exitBarcode, setExitBarcode] = useState('');
+  // Suppress subsequent scanner characters briefly after detecting a barcode
+  const [suppressExitTyping, setSuppressExitTyping] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState<any>(null);
   const [showExitReceipt, setShowExitReceipt] = useState(false);
@@ -402,6 +406,11 @@ const WalkInClients: React.FC = () => {
                 placeholder="Exit (Vehicle Number or Barcode)"
                 value={exitNumber}
                 onChange={(e) => {
+                  if (suppressExitTyping) {
+                    // Keep the locked vehicle number visible during scan spillover
+                    if (exitNumberLockRef.current) setExitNumber(exitNumberLockRef.current);
+                    return;
+                  }
                   const value = e.target.value;
                   // Heuristic: barcode is at least 10 chars and contains at least 6 consecutive digits
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
@@ -410,7 +419,14 @@ const WalkInClients: React.FC = () => {
                     const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                     if (matched) {
                       setExitNumber(matched.number);
+                      exitNumberLockRef.current = matched.number;
                     }
+                    // Temporarily ignore further characters from the scanner
+                    setSuppressExitTyping(true);
+                    setTimeout(() => {
+                      setSuppressExitTyping(false);
+                      exitNumberLockRef.current = '';
+                    }, 1000);
                     setTimeout(() => handleBarcodeExitUnified(value), 50);
                   } else {
                     setExitNumber(value);
@@ -425,7 +441,13 @@ const WalkInClients: React.FC = () => {
                       const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                       if (matched) {
                         setExitNumber(matched.number);
+                        exitNumberLockRef.current = matched.number;
                       }
+                      setSuppressExitTyping(true);
+                      setTimeout(() => {
+                        setSuppressExitTyping(false);
+                        exitNumberLockRef.current = '';
+                      }, 1000);
                       e.preventDefault();
                       handleBarcodeExitUnified(value);
                       return;
