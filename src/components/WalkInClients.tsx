@@ -87,21 +87,20 @@ const WalkInClients: React.FC = () => {
     }
 
     const entryTime = new Date();
-    const vehicleId = await addVehicle({
+    const { id: vehicleId, entryTime: persistedEntryTime } = await addVehicle({
       number: vehicleNumber,
       type: vehicleType,
       entryTime
     });
 
-    const savedVehicle = vehicles.find(v => String(v.id) === String(vehicleId)) as any;
-    const usedEntryTime = savedVehicle?.entryTime ? new Date(savedVehicle.entryTime) : entryTime;
-    const barcode = generateBarcode(vehicleNumber, usedEntryTime);
+    // Use the exact persisted entryTime from backend/local storage to ensure barcode matches
+    const barcode = generateBarcode(vehicleNumber, persistedEntryTime);
     
     const receiptData = {
       id: vehicleId,
       vehicleNumber,
       vehicleType,
-      entryTime: usedEntryTime,
+      entryTime: persistedEntryTime,
       barcode
     };
     setCurrentReceipt(receiptData);
@@ -262,14 +261,14 @@ const WalkInClients: React.FC = () => {
               <title>Parking Receipt</title>
               <style>
                 body { font-family: 'Courier New', monospace; margin: 0; padding: 15px; font-weight: bold; }
-                .receipt { max-width: 300px; margin: 0 auto; text-align: center; }
-                .receipt h3 { margin: 0 0 20px 0; font-size: 18px; font-weight: bold; }
-                .receipt div { font-size: 14px; line-height: 1.8; font-weight: bold; }
+                .receipt { max-width: 900px; margin: 0 auto; text-align: center; }
+                .receipt h3 { margin: 0 0 20px 0; font-size: 54px; font-weight: bold; }
+                .receipt div { font-size: 42px; line-height: 1.8; font-weight: bold; }
                 .flex { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
                 .font-semibold { font-weight: bold; }
                 .border-t { border-top: 2px dashed #000; padding-top: 12px; margin-bottom: 12px; }
                 .barcode-container { margin: 15px 0; }
-                .text-xs { font-size: 12px; margin-top: 15px; font-weight: bold; }
+                .text-xs { font-size: 36px; margin-top: 15px; font-weight: bold; }
                 @media print {
                   body { margin: 0; padding: 8px; font-weight: bold; }
                   .receipt { max-width: none; width: 100%; }
