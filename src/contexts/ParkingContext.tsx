@@ -22,7 +22,7 @@ interface ParkingContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => boolean;
   logout: () => void;
-  addVehicle: (vehicle: Omit<Vehicle, 'id'>) => Promise<string>;
+  addVehicle: (vehicle: Omit<Vehicle, 'id'>) => Promise<{ id: string; entryTime: Date }>;
   exitVehicle: (vehicleId: string) => Promise<void>;
   addPermanentClient: (client: Omit<Vehicle, 'id'>) => void;
   updatePermanentClient: (clientId: string, updates: Partial<Vehicle>) => void;
@@ -199,7 +199,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     } catch {}
   };
 
-  const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<string> => {
+  const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<{ id: string; entryTime: Date }> => {
     const tempId = Date.now().toString();
     const newVehicle: Vehicle = {
       ...vehicle,
@@ -250,7 +250,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       console.error('Failed to sync after vehicle entry:', error);
     }
 
-    return finalVehicle.id;
+    return { id: finalVehicle.id, entryTime: finalVehicle.entryTime };
   };
 
   const exitVehicle = async (vehicleId: string) => {
