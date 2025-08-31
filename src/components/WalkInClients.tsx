@@ -195,15 +195,23 @@ const WalkInClients: React.FC = () => {
       return;
     }
 
+    console.log('Scanned barcode:', value);
+    console.log('Available vehicles:', vehicles.filter(v => !v.exitTime).map(v => ({
+      number: v.number,
+      entryTime: v.entryTime,
+      barcode: generateBarcode(v.number, v.entryTime)
+    })));
+
     const vehicle = vehicles.find(v => {
       const vehicleBarcode = generateBarcode(v.number, v.entryTime);
+      console.log(`Comparing: scanned="${value}" vs generated="${vehicleBarcode}" for vehicle ${v.number}`);
       return vehicleBarcode === value && !v.exitTime;
     });
 
     if (!vehicle) {
       toast({
         title: "Error",
-        description: "Invalid barcode or vehicle already exited",
+        description: `Invalid barcode or vehicle already exited. Scanned: ${value}`,
         variant: "destructive"
       });
       return;
@@ -261,14 +269,14 @@ const WalkInClients: React.FC = () => {
               <title>Parking Receipt</title>
               <style>
                 body { font-family: 'Courier New', monospace; margin: 0; padding: 15px; font-weight: bold; }
-                .receipt { max-width: 900px; margin: 0 auto; text-align: center; }
-                .receipt h3 { margin: 0 0 20px 0; font-size: 54px; font-weight: bold; }
-                .receipt div { font-size: 42px; line-height: 1.8; font-weight: bold; }
+                .receipt { max-width: 1350px; margin: 0 auto; text-align: center; }
+                .receipt h3 { margin: 0 0 20px 0; font-size: 81px; font-weight: bold; }
+                .receipt div { font-size: 63px; line-height: 1.8; font-weight: bold; }
                 .flex { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
                 .font-semibold { font-weight: bold; }
                 .border-t { border-top: 2px dashed #000; padding-top: 12px; margin-bottom: 12px; }
                 .barcode-container { margin: 15px 0; }
-                .text-xs { font-size: 36px; margin-top: 15px; font-weight: bold; }
+                .text-xs { font-size: 54px; margin-top: 15px; font-weight: bold; }
                 @media print {
                   body { margin: 0; padding: 8px; font-weight: bold; }
                   .receipt { max-width: none; width: 100%; }
@@ -409,15 +417,23 @@ const WalkInClients: React.FC = () => {
                     if (exitNumberLockRef.current) setExitNumber(exitNumberLockRef.current);
                     return;
                   }
-                  const value = e.target.value;
+                  const rawValue = e.target.value;
+                  // Clean the value - remove any non-alphanumeric characters except hyphens
+                  const value = rawValue.replace(/[^A-Za-z0-9\-]/g, '');
+                  console.log('Input changed:', { raw: rawValue, cleaned: value });
+                  
                   // Heuristic: barcode is at least 10 chars and contains at least 6 consecutive digits
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                   if (isBarcode) {
+                    console.log('Detected barcode input:', value);
                     // Show the vehicle number immediately on scan
                     const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                     if (matched) {
+                      console.log('Found matching vehicle:', matched.number);
                       setExitNumber(matched.number);
                       exitNumberLockRef.current = matched.number;
+                    } else {
+                      console.log('No matching vehicle found for barcode:', value);
                     }
                     // Temporarily ignore further characters from the scanner
                     setSuppressExitTyping(true);
