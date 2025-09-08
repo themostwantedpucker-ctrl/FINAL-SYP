@@ -29,7 +29,7 @@ const WalkInClients: React.FC = () => {
     if (value.length >= 10 && /[0-9]{6,}/.test(value)) {
       handleBarcodeExitUnified(value);
     } else {
-      // Always strip barcode suffix if user pasted something like ABC123-1700000000000
+      // Always strip from the first hyphen onward (e.g., ABC123-1700000000000 -> ABC123)
       const plateOnly = value.split('-')[0];
       setExitNumber(plateOnly);
       handleManualExit();
@@ -454,7 +454,7 @@ const WalkInClients: React.FC = () => {
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                   if (isBarcode) {
                     console.log('Detected barcode input:', value);
-                    // Immediately show only the vehicle number prefix before hyphen
+                    // Immediately show only the vehicle number before any hyphen
                     const plateOnly = value.split('-')[0];
                     setExitNumber(plateOnly);
                     exitNumberLockRef.current = plateOnly;
@@ -473,7 +473,7 @@ const WalkInClients: React.FC = () => {
                     }, 1000);
                     setTimeout(() => handleBarcodeExitUnified(value), 50);
                   } else {
-                    // For manual input, also strip anything after a hyphen if present
+                    // For manual input, also strip everything after the first hyphen if present
                     const plateOnly = value.split('-')[0];
                     setExitNumber(plateOnly);
                   }
@@ -501,7 +501,7 @@ const WalkInClients: React.FC = () => {
                       handleBarcodeExitUnified(value);
                       return;
                     }
-                    // Ensure unified exit uses only the plate part
+                    // Ensure unified exit uses only the plate part (strip from first hyphen)
                     handleUnifiedExit(exitNumber.split('-')[0]);
                   }
                 }}
