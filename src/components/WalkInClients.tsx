@@ -204,7 +204,9 @@ const WalkInClients: React.FC = () => {
       return;
     }
 
-    console.log('Scanned barcode:', value);
+    // Normalize scanned value to uppercase for robust comparison
+    const scanned = value.toUpperCase();
+    console.log('Scanned barcode:', scanned);
     console.log('Available vehicles:', vehicles.filter(v => !v.exitTime).map(v => ({
       number: v.number,
       entryTime: v.entryTime,
@@ -213,8 +215,9 @@ const WalkInClients: React.FC = () => {
 
     const vehicle = vehicles.find(v => {
       const vehicleBarcode = generateBarcode(v.number, v.entryTime);
-      console.log(`Comparing: scanned="${value}" vs generated="${vehicleBarcode}" for vehicle ${v.number}`);
-      return vehicleBarcode === value && !v.exitTime;
+      const match = !v.exitTime && (vehicleBarcode === scanned || scanned.includes(vehicleBarcode));
+      console.log(`Comparing: scanned="${scanned}" vs generated="${vehicleBarcode}" for vehicle ${v.number} => ${match ? 'MATCH' : 'NO MATCH'}`);
+      return match;
     });
 
     if (!vehicle) {
@@ -251,9 +254,12 @@ const WalkInClients: React.FC = () => {
           // Make bars thicker/taller so print scaling still yields a scannable code
           width: 3.5,
           height: 96,
-          // Hide encoded text under barcode; we'll show only the vehicle number below
-          displayValue: false,
-          fontSize: 12,
+          // Show encoded text to verify and assist scanners that read both bars and text
+          displayValue: true,
+          fontSize: 18,
+          textMargin: 8,
+          lineColor: "#000000",
+          background: "#FFFFFF",
           // Larger quiet zones ~10 mm each side -> 10 * (96/25.4) ≈ 37.8 px
           marginLeft: 38,
           marginRight: 38,
@@ -261,6 +267,9 @@ const WalkInClients: React.FC = () => {
           marginTop: 0,
           marginBottom: 0
         });
+        try {
+          (barcodeRef.current as any)?.setAttribute?.('shape-rendering', 'crispEdges');
+        } catch {}
       } catch (error) {
         console.error('Error generating barcode:', error);
       }
