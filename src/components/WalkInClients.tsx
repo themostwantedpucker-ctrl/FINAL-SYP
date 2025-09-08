@@ -253,7 +253,7 @@ const WalkInClients: React.FC = () => {
           format: "CODE128",
           // Make bars thicker/taller so print scaling still yields a scannable code
           width: 3.5,
-          height: 96,
+          height: 67,
           // Show encoded text to verify and assist scanners that read both bars and text
           displayValue: true,
           fontSize: 18,
@@ -294,6 +294,7 @@ const WalkInClients: React.FC = () => {
                 .font-semibold { font-weight: bold; }
                 .border-t { border-top: 2px dashed #000; padding-top: 12px; margin-bottom: 12px; }
                 .barcode-container { margin: 15px 0; }
+                .barcode-container svg { width: 70%; height: auto; }
                 .text-xs { font-size: 54px; margin-top: 15px; font-weight: bold; }
                 @media print {
                   body { margin: 0; padding: 8px; font-weight: bold; }
@@ -334,6 +335,7 @@ const WalkInClients: React.FC = () => {
                 .font-semibold { font-weight: bold; }
                 .border-t { border-top: 2px dashed #000; padding-top: 12px; margin-bottom: 12px; }
                 .barcode-container { margin: 15px 0; }
+                .barcode-container svg { width: 100%; height: auto; }
                 .text-xs { font-size: 12px; margin-top: 15px; font-weight: bold; }
                 .text-lg { font-size: 16px; font-weight: bold; }
                 @media print {
