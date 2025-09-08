@@ -29,7 +29,9 @@ const WalkInClients: React.FC = () => {
     if (value.length >= 10 && /[0-9]{6,}/.test(value)) {
       handleBarcodeExitUnified(value);
     } else {
-      setExitNumber(value);
+      // Always strip barcode suffix if user pasted something like ABC123-1700000000000
+      const plateOnly = value.split('-')[0];
+      setExitNumber(plateOnly);
       handleManualExit();
     }
   };
@@ -452,14 +454,16 @@ const WalkInClients: React.FC = () => {
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                   if (isBarcode) {
                     console.log('Detected barcode input:', value);
-                    // Show the vehicle number immediately on scan
+                    // Immediately show only the vehicle number prefix before hyphen
+                    const plateOnly = value.split('-')[0];
+                    setExitNumber(plateOnly);
+                    exitNumberLockRef.current = plateOnly;
+                    // Optionally refine with exact match if available
                     const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                     if (matched) {
                       console.log('Found matching vehicle:', matched.number);
                       setExitNumber(matched.number);
                       exitNumberLockRef.current = matched.number;
-                    } else {
-                      console.log('No matching vehicle found for barcode:', value);
                     }
                     // Temporarily ignore further characters from the scanner
                     setSuppressExitTyping(true);
@@ -469,7 +473,9 @@ const WalkInClients: React.FC = () => {
                     }, 1000);
                     setTimeout(() => handleBarcodeExitUnified(value), 50);
                   } else {
-                    setExitNumber(value);
+                    // For manual input, also strip anything after a hyphen if present
+                    const plateOnly = value.split('-')[0];
+                    setExitNumber(plateOnly);
                   }
                 }}
                 onKeyPress={(e) => {
@@ -478,6 +484,9 @@ const WalkInClients: React.FC = () => {
                     const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                     if (isBarcode) {
                       // Show vehicle number instantly on Enter and process barcode
+                      const plateOnly = value.split('-')[0];
+                      setExitNumber(plateOnly);
+                      exitNumberLockRef.current = plateOnly;
                       const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                       if (matched) {
                         setExitNumber(matched.number);
@@ -492,7 +501,8 @@ const WalkInClients: React.FC = () => {
                       handleBarcodeExitUnified(value);
                       return;
                     }
-                    handleUnifiedExit(exitNumber);
+                    // Ensure unified exit uses only the plate part
+                    handleUnifiedExit(exitNumber.split('-')[0]);
                   }
                 }}
                 className="flex-1"
