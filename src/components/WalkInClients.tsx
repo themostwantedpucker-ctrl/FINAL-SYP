@@ -248,15 +248,15 @@ const WalkInClients: React.FC = () => {
       try {
         JsBarcode(barcodeRef.current, currentReceipt.barcode, {
           format: "CODE128",
-          // Increased bar width and height for larger barcode
-          width: 2.6,
-          height: 64,
+          // Make bars thicker/taller so print scaling still yields a scannable code
+          width: 3.5,
+          height: 96,
           // Hide encoded text under barcode; we'll show only the vehicle number below
           displayValue: false,
           fontSize: 12,
-          // Quiet zones: 5 mm each side -> 5 * (96/25.4) ≈ 18.90 px
-          marginLeft: 18.9,
-          marginRight: 18.9,
+          // Larger quiet zones ~10 mm each side -> 10 * (96/25.4) ≈ 37.8 px
+          marginLeft: 38,
+          marginRight: 38,
           // Keep top/bottom minimal (no requirement)
           marginTop: 0,
           marginBottom: 0
