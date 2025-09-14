@@ -29,9 +29,11 @@ const WalkInClients: React.FC = () => {
     if (value.length >= 10 && /[0-9]{6,}/.test(value)) {
       handleBarcodeExitUnified(value);
     } else {
-      // Always strip from the first hyphen onward (e.g., ABC123-1700000000000 -> ABC123)
-      const plateOnly = value.split('-')[0];
-      setExitNumber(plateOnly);
+      // Strip any trailing digits (with optional hyphen) from the end, e.g., ABC123-1700000000000 or ABC1231700000000000
+      const plateOnly = value.replace(/[-]?\d+$/, '');
+      // Try to match an active vehicle by this plate (case-insensitive) and display canonical form
+      const matchedByPlate = vehicles.find(v => v.number.toLowerCase() === plateOnly.toLowerCase() && !v.exitTime);
+      setExitNumber(matchedByPlate ? matchedByPlate.number : plateOnly);
       handleManualExit();
     }
   };
@@ -454,10 +456,13 @@ const WalkInClients: React.FC = () => {
                   const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                   if (isBarcode) {
                     console.log('Detected barcode input:', value);
-                    // Immediately show only the vehicle number before any hyphen
-                    const plateOnly = value.split('-')[0];
-                    setExitNumber(plateOnly);
-                    exitNumberLockRef.current = plateOnly;
+                    // Immediately show only the vehicle number without any trailing digits
+                    const plateOnly = value.replace(/[-]?\d+$/, '');
+                    // Prefer canonical number if it matches an active vehicle
+                    const matchedByPlate = vehicles.find(v => v.number.toLowerCase() === plateOnly.toLowerCase() && !v.exitTime);
+                    const toShow = matchedByPlate ? matchedByPlate.number : plateOnly;
+                    setExitNumber(toShow);
+                    exitNumberLockRef.current = toShow;
                     // Optionally refine with exact match if available
                     const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                     if (matched) {
@@ -473,9 +478,10 @@ const WalkInClients: React.FC = () => {
                     }, 1000);
                     setTimeout(() => handleBarcodeExitUnified(value), 50);
                   } else {
-                    // For manual input, also strip everything after the first hyphen if present
-                    const plateOnly = value.split('-')[0];
-                    setExitNumber(plateOnly);
+                    // For manual input, strip any trailing digits (with optional hyphen) and prefer canonical casing
+                    const plateOnly = value.replace(/[-]?\d+$/, '');
+                    const matchedByPlate = vehicles.find(v => v.number.toLowerCase() === plateOnly.toLowerCase() && !v.exitTime);
+                    setExitNumber(matchedByPlate ? matchedByPlate.number : plateOnly);
                   }
                 }}
                 onKeyPress={(e) => {
@@ -484,9 +490,11 @@ const WalkInClients: React.FC = () => {
                     const isBarcode = value.length >= 10 && /[0-9]{6,}/.test(value);
                     if (isBarcode) {
                       // Show vehicle number instantly on Enter and process barcode
-                      const plateOnly = value.split('-')[0];
-                      setExitNumber(plateOnly);
-                      exitNumberLockRef.current = plateOnly;
+                      const plateOnly = value.replace(/[-]?\d+$/, '');
+                      const matchedByPlate = vehicles.find(v => v.number.toLowerCase() === plateOnly.toLowerCase() && !v.exitTime);
+                      const toShow = matchedByPlate ? matchedByPlate.number : plateOnly;
+                      setExitNumber(toShow);
+                      exitNumberLockRef.current = toShow;
                       const matched = vehicles.find(v => generateBarcode(v.number, v.entryTime) === value && !v.exitTime);
                       if (matched) {
                         setExitNumber(matched.number);
@@ -501,8 +509,8 @@ const WalkInClients: React.FC = () => {
                       handleBarcodeExitUnified(value);
                       return;
                     }
-                    // Ensure unified exit uses only the plate part (strip from first hyphen)
-                    handleUnifiedExit(exitNumber.split('-')[0]);
+                    // Ensure unified exit uses only the plate part (strip trailing digits if present)
+                    handleUnifiedExit(exitNumber.replace(/[-]?\d+$/, ''));
                   }
                 }}
                 className="flex-1"
